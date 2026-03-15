@@ -1,0 +1,177 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Customer profile information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["customer", "admin"] },
+        "addresses": { "type": "array", "items": { "type": "object" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email", "role"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Fashion product details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "sku": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "subcategoryId": { "type": "string" },
+        "shortDescription": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "salePrice": { "type": "number" },
+        "stock": { "type": "integer" },
+        "sizes": { "type": "array", "items": { "type": "string" } },
+        "colors": { "type": "array", "items": { "type": "string" } },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "material": { "type": "string" },
+        "careInstructions": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "featuredImage": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "bestseller": { "type": "boolean" },
+        "newArrival": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "ratingAverage": { "type": "number" },
+        "reviewCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "slug", "price", "stock", "status"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product categories",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "parentId": { "type": "string" },
+        "image": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "slug"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer orders",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "address": { "type": "object" },
+        "items": { "type": "array", "items": { "type": "object" } },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "couponCode": { "type": "string" },
+        "deliveryFee": { "type": "number" },
+        "total": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "paymentStatus": { "type": "string" },
+        "orderStatus": { "type": "string" },
+        "adminNote": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["orderNumber", "customerName", "total", "orderStatus"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Product reviews",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "rating": { "type": "integer" },
+        "comment": { "type": "string" },
+        "approved": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["productId", "rating"]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "Discount coupons",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "type": { "type": "string", "enum": ["percentage", "fixed"] },
+        "value": { "type": "number" },
+        "minOrder": { "type": "number" },
+        "maxUses": { "type": "integer" },
+        "usedCount": { "type": "integer" },
+        "expiryDate": { "type": "string", "format": "date-time" },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "type", "value"]
+    },
+    "Banner": {
+      "title": "Banner",
+      "description": "Homepage banners",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "imageDesktop": { "type": "string" },
+        "imageMobile": { "type": "string" },
+        "buttonText": { "type": "string" },
+        "buttonLink": { "type": "string" },
+        "active": { "type": "boolean" },
+        "order": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["imageDesktop"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Store settings",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string" },
+        "logo": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "address": { "type": "string" },
+        "currency": { "type": "string" },
+        "deliveryFee": { "type": "number" },
+        "bankTransferInstructions": { "type": "string" },
+        "facebook": { "type": "string" },
+        "instagram": { "type": "string" },
+        "tiktok": { "type": "string" },
+        "footerText": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "User profiles" },
+    "/products/{productId}": { "schema": "Product", "description": "Product catalog" },
+    "/categories/{categoryId}": { "schema": "Category", "description": "Product categories" },
+    "/orders/{orderId}": { "schema": "Order", "description": "Customer orders" },
+    "/reviews/{reviewId}": { "schema": "Review", "description": "Product reviews" },
+    "/coupons/{couponId}": { "schema": "Coupon", "description": "Discount coupons" },
+    "/banners/{bannerId}": { "schema": "Banner", "description": "Homepage banners" },
+    "/settings/store": { "schema": "Settings", "description": "Store configuration" }
+  }
+}

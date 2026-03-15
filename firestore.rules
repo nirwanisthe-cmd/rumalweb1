@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Document ID: userId
+    // Fields: id, name, email, phone, role, addresses, createdAt
+    
+    // Collection: products
+    // Document ID: productId
+    // Fields: name, slug, sku, price, stock, status, images, etc.
+    
+    // Collection: categories
+    // Document ID: categoryId
+    // Fields: name, slug, parentId, image, featured
+    
+    // Collection: orders
+    // Document ID: orderId
+    // Fields: orderNumber, customerId, total, orderStatus, items, etc.
+    
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "nirwanisthe@gmail.com" ||
+         request.auth.token.email == "rumalfernando@luxeboutique.lk" ||
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'role']) &&
+             data.email is string &&
+             data.role in ['customer', 'admin'];
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'slug', 'price', 'stock', 'status']) &&
+             data.name is string && data.name.size() > 0 &&
+             data.price is number && data.price >= 0 &&
+             data.stock is int && data.stock >= 0 &&
+             data.status in ['draft', 'published'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && 
+                    (request.resource.data.role == 'customer' || isAdmin());
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && (resource.data.customerId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.customerId == request.auth.uid;
+      allow update: if isAdmin();
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    match /coupons/{couponId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
