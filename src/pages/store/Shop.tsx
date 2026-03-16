@@ -18,6 +18,8 @@ const Shop: React.FC = () => {
   // Filters
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categorySlug || null);
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
+  const [maxPrice, setMaxPrice] = useState(25000);
+  const [priceLimit, setPriceLimit] = useState(25000);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -34,7 +36,6 @@ const Shop: React.FC = () => {
         let q = query(collection(db, 'products'), where('status', '==', 'published'));
 
         if (selectedCategory) {
-          // In a real app, you'd find the category ID by slug
           const cat = categories.find(c => c.slug === selectedCategory);
           if (cat) {
             q = query(q, where('categoryId', '==', cat.id));
@@ -44,7 +45,16 @@ const Shop: React.FC = () => {
         const snap = await getDocs(q);
         let results = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
 
-        // Client-side sorting for simplicity in this demo
+        // Find max price in results to set slider max if needed
+        if (results.length > 0) {
+          const actualMax = Math.max(...results.map(p => p.salePrice || p.price));
+          if (actualMax > maxPrice) setMaxPrice(Math.ceil(actualMax / 1000) * 1000);
+        }
+
+        // Client-side filtering for price range
+        results = results.filter(p => (p.salePrice || p.price) <= priceLimit);
+
+        // Client-side sorting
         if (sortBy === 'price-low') results.sort((a, b) => (a.salePrice || a.price) - (b.salePrice || b.price));
         if (sortBy === 'price-high') results.sort((a, b) => (b.salePrice || b.price) - (a.salePrice || a.price));
         if (sortBy === 'newest') results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -60,7 +70,13 @@ const Shop: React.FC = () => {
     if (categories.length > 0 || !selectedCategory) {
       fetchProducts();
     }
-  }, [selectedCategory, sortBy, categories]);
+  }, [selectedCategory, sortBy, categories, priceLimit]);
+
+  const clearFilters = () => {
+    setSelectedCategory(null);
+    setPriceLimit(maxPrice);
+    setSortBy('newest');
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -115,7 +131,7 @@ const Shop: React.FC = () => {
         <div className="text-center py-20">
           <p className="text-stone-500 italic">No products found matching your criteria.</p>
           <button 
-            onClick={() => setSelectedCategory(null)}
+            onClick={clearFilters}
             className="mt-4 text-stone-900 underline underline-offset-4 text-sm"
           >
             Clear all filters
@@ -170,34 +186,26 @@ const Shop: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Sizes */}
+                {/* Price Range Slider */}
                 <div>
-                  <h3 className="text-xs uppercase tracking-[0.2em] font-bold mb-6">Size</h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => (
-                      <button key={size} className="border border-stone-200 py-2 text-xs hover:border-stone-900 transition-colors">
-                        {size}
-                      </button>
-                    ))}
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xs uppercase tracking-[0.2em] font-bold">Price Range</h3>
+                    <span className="text-xs font-mono text-stone-500">Up to LKR {priceLimit.toLocaleString()}</span>
                   </div>
-                </div>
-
-                {/* Price Range */}
-                <div>
-                  <h3 className="text-xs uppercase tracking-[0.2em] font-bold mb-6">Price Range</h3>
-                  <div className="space-y-4">
-                    <label className="flex items-center space-x-3 text-sm text-stone-600">
-                      <input type="checkbox" className="accent-stone-900" />
-                      <span>Under LKR 5,000</span>
-                    </label>
-                    <label className="flex items-center space-x-3 text-sm text-stone-600">
-                      <input type="checkbox" className="accent-stone-900" />
-                      <span>LKR 5,000 - LKR 10,000</span>
-                    </label>
-                    <label className="flex items-center space-x-3 text-sm text-stone-600">
-                      <input type="checkbox" className="accent-stone-900" />
-                      <span>Over LKR 10,000</span>
-                    </label>
+                  <div className="px-2">
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max={maxPrice} 
+                      step="500"
+                      value={priceLimit}
+                      onChange={(e) => setPriceLimit(parseInt(e.target.value))}
+                      className="w-full h-1 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-stone-900"
+                    />
+                    <div className="flex justify-between mt-2 text-[10px] text-stone-400 uppercase tracking-widest">
+                      <span>LKR 0</span>
+                      <span>LKR {maxPrice.toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
               </div>
